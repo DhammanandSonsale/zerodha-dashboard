@@ -1,10 +1,27 @@
-import React, { useState } from "react";
-
 import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 
 const Menu = () => {
   const [selectedMenu, setSelectedMenu] = useState(0);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [username, setUsername] = useState("");
+
+  useEffect(() => {
+    const fetchUsername = async () => {
+      try {
+        const res = await axios.get("http://localhost:3002/getUser", {
+          withCredentials: true,
+        });
+        setUsername(res.data.username);
+      } catch (error) {
+        console.error("Failed to fetch user:", error);
+        setUsername("User"); // fallback
+      }
+    };
+
+    fetchUsername();
+  }, []);
 
   const handleMenuClick = (index) => {
     setSelectedMenu(index);
@@ -12,6 +29,10 @@ const Menu = () => {
 
   const handleProfileClick = (index) => {
     setIsProfileDropdownOpen(!isProfileDropdownOpen);
+  };
+
+  const handleHomeClick = () => {
+    window.location.href = "http://localhost:3000/";
   };
 
   const menuClass = "menu";
@@ -69,7 +90,7 @@ const Menu = () => {
           <li>
             <Link
               style={{ textDecoration: "none" }}
-              to="funds"
+              to="/funds"
               onClick={() => handleMenuClick(4)}
             >
               <p className={selectedMenu === 4 ? activeMenuClass : menuClass}>
@@ -80,19 +101,23 @@ const Menu = () => {
           <li>
             <Link
               style={{ textDecoration: "none" }}
-              to="/apps"
-              onClick={() => handleMenuClick(6)}
+              to="/home"
+              onClick={() => {
+                handleMenuClick(4);
+                handleHomeClick();
+              }}
             >
-              <p className={selectedMenu === 6 ? activeMenuClass : menuClass}>
-                Apps
+              <p className={selectedMenu === 4 ? activeMenuClass : menuClass}>
+                Go To Home
               </p>
             </Link>
           </li>
+          
         </ul>
         <hr />
         <div className="profile" onClick={handleProfileClick}>
-          <div className="avatar">ZU</div>
-          <p className="username">USERID</p>
+          <div className="avatar">{username.slice(0,2).toLocaleUpperCase() || "US"}</div>
+          <p className="username">{username ? username : "User"}</p>
         </div>
       </div>
     </div>

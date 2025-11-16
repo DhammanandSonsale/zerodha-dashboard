@@ -1,29 +1,38 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
-
+import React, { useState, useContext } from "react";
 import axios from "axios";
-
-import GeneralContext from "./GeneralContext";
-
+import GeneralContext  from "./GeneralContext"; // ✅ Named import for context
 import "./BuyActionWindow.css";
 
 const BuyActionWindow = ({ uid }) => {
   const [stockQuantity, setStockQuantity] = useState(1);
   const [stockPrice, setStockPrice] = useState(0.0);
+  const [error, setError] = useState("");
 
-  const handleBuyClick = () => {
-    axios.post("http://localhost:3002/newOrder", {
-      name: uid,
-      qty: stockQuantity,
-      price: stockPrice,
-      mode: "BUY",
-    });
+  // ✅ Get the function from context using useContext
+  const { closeBuyWindow } = useContext(GeneralContext);
 
-    GeneralContext.closeBuyWindow();
+  const handleBuyClick = async () => {
+    try {
+      const quantity = parseInt(stockQuantity);
+      const price = parseFloat(stockPrice);
+
+      const response = await axios.post("http://localhost:3002/newOrder", {
+        name: uid,
+        qty: quantity,
+        price: price,
+        mode: "BUY",
+      });
+
+      console.log("Order placed:", response.data);
+      closeBuyWindow(); // ✅ works now
+    } catch (err) {
+      console.error("Order failed:", err);
+      setError("Failed to place order. Please try again.");
+    }
   };
 
   const handleCancelClick = () => {
-    GeneralContext.closeBuyWindow();
+    closeBuyWindow(); // ✅ works now
   };
 
   return (
@@ -57,13 +66,14 @@ const BuyActionWindow = ({ uid }) => {
       <div className="buttons">
         <span>Margin required ₹140.65</span>
         <div>
-          <Link className="btn btn-blue" onClick={handleBuyClick}>
+          <button className="btn btn-blue" onClick={handleBuyClick}>
             Buy
-          </Link>
-          <Link to="" className="btn btn-grey" onClick={handleCancelClick}>
+          </button>
+          <button className="btn btn-grey" onClick={handleCancelClick}>
             Cancel
-          </Link>
+          </button>
         </div>
+        {error && <p className="text-danger mt-2">{error}</p>}
       </div>
     </div>
   );
